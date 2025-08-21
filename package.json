@@ -1,0 +1,14 @@
+{
+  "name": "doccraft",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "concurrently -n FE,BE \"npm run -w apps/frontend dev\" \"npm run -w apps/backend dev\"",
+    "dev:fe": "npm run -w apps/frontend dev",
+    "dev:be": "npm run -w apps/backend dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
