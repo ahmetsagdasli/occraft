@@ -1,10 +1,9 @@
 import * as React from 'react'
-import {
-  Alert, Box, Button, Card, CardContent, LinearProgress, Stack, ToggleButton, ToggleButtonGroup, Typography
-} from '@mui/material'
+import { Alert, Box, Button, LinearProgress, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
 import DropArea from '../components/DropArea'
 import { useUpload } from '../hooks/useUpload'
+import GlassPanel from '../components/GlassPanel'
 
 export default function Compress() {
   const [file, setFile] = React.useState<File | null>(null)
@@ -40,10 +39,7 @@ export default function Compress() {
       const fd = new FormData()
       fd.append('file', file)
       fd.append('level', level)
-      const resp = await send<{ url: string }>(
-        '/api/compress',
-        fd
-      )
+      const resp = await send<{ url: string }>('/api/compress', fd)
       window.location.href = resp.url
       reset()
     } catch (e: any) {
@@ -55,53 +51,51 @@ export default function Compress() {
     <Stack spacing={2}>
       <Typography variant="h4" gutterBottom>PDF Sıkıştır</Typography>
 
-      <Card variant="outlined" sx={{ borderRadius: 3 }}>
-        <CardContent>
-          <Stack spacing={2}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
-              <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={pick} />
-              <Button variant="contained" startIcon={<UploadFileIcon />} onClick={() => inputRef.current?.click()}>
-                PDF Seç
-              </Button>
+      <GlassPanel>
+        <Stack spacing={2}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+            <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={pick} />
+            <Button variant="contained" startIcon={<UploadFileIcon />} onClick={() => inputRef.current?.click()}>
+              PDF Seç
+            </Button>
 
-              <ToggleButtonGroup exclusive value={level} onChange={(_, v) => v && setLevel(v)} size="small">
-                <ToggleButton value="balanced">Dengeli</ToggleButton>
-                <ToggleButton value="strong">Güçlü</ToggleButton>
-              </ToggleButtonGroup>
-            </Stack>
+            <ToggleButtonGroup exclusive value={level} onChange={(_, v) => v && setLevel(v)} size="small">
+              <ToggleButton value="balanced">Dengeli</ToggleButton>
+              <ToggleButton value="strong">Güçlü</ToggleButton>
+            </ToggleButtonGroup>
+          </Stack>
 
-            <DropArea accept="application/pdf" onFiles={(fs) => { const f = fs[0]; if (f) { setFile(f); makePreview(f) } }} />
+          <DropArea accept="application/pdf" onFiles={(fs) => { const f = fs[0]; if (f) { setFile(f); makePreview(f) } }} />
 
-            {file && (
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="flex-start">
-                {previewUrl && (
-                  <Box sx={{ width: 180, border: '1px solid', borderColor: 'divider', borderRadius: 1, overflow: 'hidden' }}>
-                    <img src={previewUrl} alt="preview" style={{ display: 'block', width: '100%' }} />
+          {file && (
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="flex-start">
+              {previewUrl && (
+                <Box sx={{ width: 180, border: '1px solid', borderColor: 'divider', borderRadius: 1, overflow: 'hidden' }}>
+                  <img src={previewUrl} alt="preview" style={{ display: 'block', width: '100%' }} />
+                </Box>
+              )}
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Seçilen: <b>{file.name}</b>
+                </Typography>
+                <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
+                  <Button variant="contained" onClick={onCompress} disabled={busy}>Sıkıştır</Button>
+                  <Button variant="outlined" onClick={() => { setFile(null); setPreviewUrl(null); reset() }} disabled={busy}>Temizle</Button>
+                </Stack>
+
+                {busy && (
+                  <Box sx={{ mt: 2 }}>
+                    <LinearProgress variant="determinate" value={progress} />
+                    <Typography variant="caption" color="text.secondary">
+                      Yükleme: %{progress}{eta !== null ? ` • ETA ~${eta}s` : ''}
+                    </Typography>
                   </Box>
                 )}
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Seçilen: <b>{file.name}</b>
-                  </Typography>
-                  <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
-                    <Button variant="contained" onClick={onCompress} disabled={busy}>Sıkıştır</Button>
-                    <Button variant="outlined" onClick={() => { setFile(null); setPreviewUrl(null); reset() }} disabled={busy}>Temizle</Button>
-                  </Stack>
-
-                  {busy && (
-                    <Box sx={{ mt: 2 }}>
-                      <LinearProgress variant="determinate" value={progress} />
-                      <Typography variant="caption" color="text.secondary">
-                        Yükleme: %{progress}{eta !== null ? ` • ETA ~${eta}s` : ''}
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-              </Stack>
-            )}
-          </Stack>
-        </CardContent>
-      </Card>
+              </Box>
+            </Stack>
+          )}
+        </Stack>
+      </GlassPanel>
 
       {error && <Alert severity="error">{error}</Alert>}
     </Stack>

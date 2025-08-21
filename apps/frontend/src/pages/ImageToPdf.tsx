@@ -1,65 +1,33 @@
 import * as React from 'react'
-import {
-  Box, Button, Card, CardContent, LinearProgress, List, ListItem, ListItemText,
-  Stack, Typography, Alert, IconButton
-} from '@mui/material'
+import { Alert, Box, Button, Chip, Stack, Typography, LinearProgress } from '@mui/material'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
-import DeleteIcon from '@mui/icons-material/Delete'
-
-function humanSize(n: number) {
-  const u = ['B', 'KB', 'MB', 'GB']
-  let i = 0
-  let x = n
-  while (x >= 1024 && i < u.length - 1) { x /= 1024; i++ }
-  return `${x.toFixed(1)} ${u[i]}`
-}
+import GlassPanel from '../components/GlassPanel'
+import DropArea from '../components/DropArea'
+import { useUpload } from '../hooks/useUpload'
 
 export default function ImageToPdf() {
-  const [files, setFiles] = React.useState<File[]>([])
-  const [busy, setBusy] = React.useState(false)
+  const [images, setImages] = React.useState<File[]>([])
   const [error, setError] = React.useState<string | null>(null)
-  const [downloadUrl, setDownloadUrl] = React.useState<string | null>(null)
   const inputRef = React.useRef<HTMLInputElement | null>(null)
+  const { send, progress, eta, busy, reset } = useUpload()
 
-  function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const fs = e.target.files
-    if (fs) setFiles(prev => [...prev, ...Array.from(fs)])
-    e.target.value = ''
+  const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fs = e.target.files ? Array.from(e.target.files) : []
+    if (fs.length) setImages((prev) => [...prev, ...fs])
+    e.currentTarget.value = ''
   }
 
-  function move(idx: number, dir: -1 | 1) {
-    setFiles(prev => {
-      const next = [...prev]
-      const j = idx + dir
-      if (j < 0 || j >= next.length) return prev
-      const t = next[idx]; next[idx] = next[j]; next[j] = t
-      return next
-    })
-  }
-
-  function removeAt(idx: number) {
-    setFiles(prev => prev.filter((_, i) => i !== idx))
-  }
-
-  async function onConvert() {
+  const onMakePdf = async () => {
     try {
-      setBusy(true); setError(null); setDownloadUrl(null)
-      if (!files.length) { setError('En az bir PNG/JPG seçin'); return }
+      setError(null)
+      if (!images.length) throw new Error('En az bir görsel seç')
       const fd = new FormData()
-      for (const f of files) fd.append('files', f)
-      const res = await fetch('/api/image-to-pdf', { method: 'POST', body: fd })
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}))
-        throw new Error(j.error || `İstek başarısız: ${res.status}`)
-      }
-      const j = await res.json()
-      setDownloadUrl(j.url as string)
+      images.forEach((f) => fd.append('files', f))
+      const resp = await send<{ url: string }>('/api/image-to-pdf', fd)
+      window.location.href = resp.url
+      reset()
     } catch (e: any) {
-      setError(e.message || 'Görsel → PDF hatası')
-    } finally {
-      setBusy(false)
+      setError(e.message || 'PDF oluşturma hatası')
     }
   }
 
@@ -67,66 +35,50 @@ export default function ImageToPdf() {
     <Stack spacing={2}>
       <Typography variant="h4" gutterBottom>Görsel → PDF</Typography>
 
-      <Card variant="outlined" sx={{ borderRadius: 3 }}>
-        <CardContent>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/png,image/jpeg"
-              multiple
-              hidden
-              onChange={onPick}
-            />
+      <GlassPanel>
+        <Stack spacing={2}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+            <input ref={inputRef} type="file" accept="image/*" hidden multiple onChange={onPick} />
             <Button variant="contained" startIcon={<UploadFileIcon />} onClick={() => inputRef.current?.click()}>
-              Görsel Yükle
+              Görsel Seç
             </Button>
-            <Typography variant="body2" color="text.secondary">
-              PNG veya JPG; listedeki sıraya göre sayfaya yerleşir.
-            </Typography>
+            <Button variant="outlined" onClick={() => setImages([])} disabled={busy || images.length === 0}>
+              Temizle
+            </Button>
           </Stack>
 
-          {files.length > 0 && (
-            <Box sx={{ mt: 2 }}>
-              <List dense>
-                {files.map((f, idx) => (
-                  <ListItem
-                    key={idx}
-                    secondaryAction={
-                      <Stack direction="row" spacing={1}>
-                        <IconButton onClick={() => move(idx, -1)} disabled={idx === 0}><ArrowUpwardIcon /></IconButton>
-                        <IconButton onClick={() => move(idx, +1)} disabled={idx === files.length - 1}><ArrowDownwardIcon /></IconButton>
-                        <IconButton onClick={() => removeAt(idx)}><DeleteIcon /></IconButton>
-                      </Stack>
-                    }
-                  >
-                    <ListItemText primary={f.name} secondary={`${humanSize(f.size)} — ${f.type}`} />
-                  </ListItem>
-                ))}
-              </List>
+          <DropArea accept="image/*" multiple onFiles={(fs) => setImages((prev) => [...prev, ...fs])} />
 
-              <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
-                <Button variant="contained" onClick={onConvert} disabled={busy}>Dönüştür</Button>
-                <Button variant="outlined" onClick={() => setFiles([])} disabled={busy}>Temizle</Button>
+          {images.length > 0 && (
+            <Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Seçilen görseller:
+              </Typography>
+              <Stack direction="row" flexWrap="wrap" gap={1}>
+                {images.map((f, i) => (
+                  <Chip key={i} label={f.name} onDelete={() => setImages((prev) => prev.filter((_, idx) => idx !== i))} />
+                ))}
               </Stack>
+
+              <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                <Button variant="contained" onClick={onMakePdf} disabled={busy}>PDF Oluştur</Button>
+                <Button variant="outlined" onClick={() => setImages([])} disabled={busy}>Temizle</Button>
+              </Stack>
+
+              {busy && (
+                <Box sx={{ mt: 2 }}>
+                  <LinearProgress variant="determinate" value={progress} />
+                  <Typography variant="caption" color="text.secondary">
+                    Yükleme: %{progress}{eta !== null ? ` • ETA ~${eta}s` : ''}
+                  </Typography>
+                </Box>
+              )}
             </Box>
           )}
-        </CardContent>
-      </Card>
-
-      {busy && (
-        <Box>
-          <LinearProgress />
-          <Typography variant="body2" sx={{ mt: 1 }}>İşlem yapılıyor…</Typography>
-        </Box>
-      )}
+        </Stack>
+      </GlassPanel>
 
       {error && <Alert severity="error">{error}</Alert>}
-      {downloadUrl && (
-        <Alert severity="success">
-          PDF hazır. <a href={downloadUrl} rel="noreferrer">Tek kullanımlık indir</a> — 15 dakika.
-        </Alert>
-      )}
     </Stack>
   )
 }

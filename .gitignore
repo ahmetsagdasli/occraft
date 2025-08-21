@@ -1,0 +1,115 @@
+node_modules
+# --- OS / Editor junk --------------------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.fseventsd
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+# Linux
+*~
+# IDEs
+.vscode/
+.idea/
+.fleet/
+.history/
+
+# --- Logs --------------------------------------------------------------------
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# --- Node / Monorepo ---------------------------------------------------------
+node_modules/
+apps/*/node_modules/
+
+# package managers caches
+.npm/
+.pnpm-store/
+.yarn/
+.yarn/cache/
+.yarn/install-state.gz
+
+# --- Build outputs -----------------------------------------------------------
+dist/
+build/
+out/
+coverage/
+reports/
+*.tgz
+
+# per-package (apps/*) build outputs
+apps/*/dist/
+apps/*/build/
+apps/*/out/
+apps/*/coverage/
+apps/*/reports/
+
+# Vite / tooling caches
+.vite/
+apps/*/.vite/
+.eslintcache
+apps/*/.eslintcache
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Turbo / Nx / etc.
+.turbo/
+turbo/
+
+# --- Env files ---------------------------------------------------------------
+
+.env
+.env.*
+!.env.example
+
+# direnv
+.envrc
+
+# --- Temporary / runtime data ------------------------------------------------
+tmp/
+temp/
+*.pid
+*.seed
+*.pid.lock
+
+# --- App-specific (backend uploads, temp files, generated artifacts) ---------
+# Backend 
+apps/backend/uploads/
+apps/backend/upload/
+apps/backend/tmp/
+apps/backend/.tmp/
+apps/backend/storage/
+apps/backend/runtime/
+apps/backend/.cache/
+
+# Frontend
+apps/frontend/.cache/
+
+# --- Databases / local data --------------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# --- Misc --------------------------------------------------------------------
+# npm pack outputs
+*.npmrc
+npm-packages-offline-cache/
+
+# lock files: 
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml

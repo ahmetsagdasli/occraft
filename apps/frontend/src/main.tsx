@@ -11,8 +11,11 @@ import PdfToImage from './pages/PdfToImage'
 import ImageToPdf from './pages/ImageToPdf'
 import Reorder from './pages/Reorder'
 import Protect from './pages/Protect'
+import About from './pages/About'
 import theme from './theme'
 import './i18n'
+import '@fontsource-variable/inter'
+import { StatsProvider } from './hooks/useStats'
 
 const router = createBrowserRouter([
   {
@@ -26,16 +29,19 @@ const router = createBrowserRouter([
       { path: 'pdf-to-image', element: <PdfToImage /> },
       { path: 'image-to-pdf', element: <ImageToPdf /> },
       { path: 'reorder', element: <Reorder /> },
-      { path: 'protect', element: <Protect /> }
-    ]
-  }
+      { path: 'protect', element: <Protect /> },
+      { path: 'about', element: <About /> },
+    ],
+  },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <RouterProvider router={router} />
+      <StatsProvider>
+        <RouterProvider router={router} />
+      </StatsProvider>
     </ThemeProvider>
   </React.StrictMode>
 )

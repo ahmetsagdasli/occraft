@@ -1,99 +1,101 @@
 import { alpha, createTheme } from '@mui/material/styles'
 
-const PRIMARY = {
-  light: '#60A5FA',   // canlı mavi (tailwind blue-400)
-  main:  '#2563EB',   // canlı mavi (blue-600)
-  dark:  '#1D4ED8',
-  contrastText: '#FFFFFF'
-}
-
-const SECONDARY = {
-  light: '#F472D0',   // canlı magenta (pink-400)
-  main:  '#E11DAD',   // canlı magenta (≈ rgb(225,29,173))
-  dark:  '#B8128B',
-  contrastText: '#FFFFFF'
-}
+const PR = { main: '#2563EB', dark: '#1D4ED8', light: '#60A5FA' }   // canlı mavi
+const SE = { main: '#E11DAD', dark: '#B8128B', light: '#F472D0' }   // canlı magenta
+const RADIUS = 20
 
 const theme = createTheme({
   palette: {
     mode: 'light',
-    primary: PRIMARY,
-    secondary: SECONDARY,
-    background: {
-      default: '#fafafa',
-      paper: '#ffffff'
-    }
+    primary: { ...PR, contrastText: '#fff' },
+    secondary: { ...SE, contrastText: '#fff' },
+    background: { default: '#F7F8FB', paper: '#FFFFFF' },
+    text: { primary: '#0F172A', secondary: '#64748B' },
   },
-  shape: { borderRadius: 16 },
+  shape: { borderRadius: RADIUS },
   typography: {
-    fontFamily: `"Inter", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`
+    // @fontsource/inter kurulumu ile
+    fontFamily:
+      '"InterVariable","Inter","system-ui",-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial',
+    h4: { fontWeight: 800, letterSpacing: -0.4 },
+    button: { fontWeight: 700, textTransform: 'none' },
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        '@font-face': [
+          // InterVariable css importu main.tsx içinde yapılacak
+        ] as any,
+      },
+    },
     MuiAppBar: {
       styleOverrides: {
         colorPrimary: {
-          background: `linear-gradient(90deg, ${PRIMARY.main} 0%, ${SECONDARY.main} 100%)`,
-          color: '#fff'
-        }
-      }
+          background: `linear-gradient(90deg, ${PR.main}, ${SE.main})`,
+          color: '#fff',
+        },
+      },
     },
-    MuiButton: {
-      defaultProps: { disableElevation: true },
+    MuiDrawer: {
       styleOverrides: {
-        root: {
-          borderRadius: 14,
-          textTransform: 'none',
-          fontWeight: 600
+        paper: {
+          background: (t) =>
+            `linear-gradient(180deg, ${alpha(t.palette.primary.main, 0.10)}, ${alpha(
+              t.palette.secondary.main,
+              0.10
+            )})`,
+          backdropFilter: 'blur(8px)',
+          borderRight: `1px solid ${alpha('#000', 0.06)}`,
         },
-        containedPrimary: {
-          background: `linear-gradient(90deg, ${PRIMARY.main}, ${SECONDARY.main})`,
-          '&:hover': {
-            background: `linear-gradient(90deg, ${PRIMARY.dark}, ${SECONDARY.dark})`
-          }
-        },
-        containedSecondary: {
-          background: `linear-gradient(90deg, ${SECONDARY.main}, ${PRIMARY.main})`,
-          '&:hover': {
-            background: `linear-gradient(90deg, ${SECONDARY.dark}, ${PRIMARY.dark})`
-          }
-        },
-        outlinedPrimary: {
-          borderColor: alpha(PRIMARY.main, 0.5),
-          '&:hover': { borderColor: PRIMARY.main, backgroundColor: alpha(PRIMARY.main, 0.06) }
-        }
-      }
+      },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 20,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.06)'
-        }
-      }
+          borderRadius: RADIUS + 4,
+          boxShadow: '0 12px 40px rgba(20,20,43,0.08)',
+          border: `1px solid ${alpha('#000', 0.06)}`,
+        },
+      },
+    },
+    MuiButton: {
+      defaultProps: { disableElevation: true },
+      styleOverrides: {
+        containedPrimary: {
+          background: `linear-gradient(90deg, ${PR.main}, ${SE.main})`,
+          '&:hover': {
+            background: `linear-gradient(90deg, ${PR.dark}, ${SE.dark})`,
+          },
+        },
+        outlined: {
+          borderWidth: 2,
+          '&:hover': {
+            backgroundColor: alpha(PR.main, 0.06),
+            borderWidth: 2,
+          },
+        },
+      },
     },
     MuiListItemButton: {
       styleOverrides: {
         root: {
-          borderRadius: 10,
+          borderRadius: 12,
           margin: '4px 8px',
-          '&.Mui-selected': {
-            backgroundColor: alpha(PRIMARY.main, 0.12)
-          },
-          '&.Mui-selected:hover': {
-            backgroundColor: alpha(PRIMARY.main, 0.18)
-          }
-        }
-      }
+          '&.Mui-selected': { backgroundColor: alpha(PR.main, 0.12) },
+        },
+      },
     },
-    MuiLink: {
+    MuiLinearProgress: {
       styleOverrides: {
+        bar: { borderRadius: 8 },
         root: {
-          color: PRIMARY.main,
-          '&:hover': { color: SECONDARY.main }
-        }
-      }
-    }
-  }
+          borderRadius: 8,
+          height: 8,
+          backgroundColor: alpha(PR.main, 0.15),
+        },
+      },
+    },
+  },
 })
 
 export default theme
